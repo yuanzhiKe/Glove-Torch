@@ -77,6 +77,8 @@ class GloveModel(nn.Module):
         
         return x
 
+# loss function from https://nlpython.com/implementing-glove-model-with-pytorch/
+    
 def weight_func(x, x_max, alpha):
     wx = (x/x_max)**alpha
     wx = torch.min(wx, torch.ones_like(wx))
