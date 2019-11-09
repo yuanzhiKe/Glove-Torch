@@ -84,17 +84,15 @@ class GloveDataset(Dataset):
     def __getitem__(self, i):
         return self.v_array[i], self.w1_array[i], self.w2_array[i]
 
-def get_init_emb_weight(vocab_size, emb_size):
-    init_width = 0.5 / emb_size
-    init_weight = np.random.uniform(low=-init_width, high=init_width, size=(vocab_size, emb_size))
-    return init_weight
-
 class glove(Function):
     @staticmethod
     def forward(ctx, w_i, w_j, b_i, b_j, x_ij, x_max, alpha):
         w_i, w_j, b_i, b_j = w_i.detach(), w_j.detach(), b_i.detach(), b_j.detach()
         diff = torch.sum(w_i * w_j, dim=1)
         diff += b_i + b_j - torch.log(x_ij)
+        # nan and inf change to 0, according to line #131-#135 in the original c implementation
+        diff[torch.isnan(diff)] = 0
+        diff[torch.isinf(diff)] = 0
         fdiff = torch.where(x_ij > x_max, diff, torch.pow(x_ij / x_max, alpha) * diff)
         batch_cost = fdiff * diff * 0.5
         ctx.save_for_backward(w_i, w_j, b_i, b_j, fdiff)
@@ -107,6 +105,12 @@ class glove(Function):
         grad_w_i = fdiff * w_j
         grad_w_j = fdiff * w_i
         return grad_w_i, grad_w_j, grad_b_i, grad_b_j, None, None, None
+
+
+def get_init_emb_weight(vocab_size, emb_size):
+    init_width = 0.5 / emb_size
+    init_weight = np.random.uniform(low=-init_width, high=init_width, size=(vocab_size, emb_size))
+    return init_weight
 
 
 class GloveModel(nn.Module):
@@ -145,7 +149,7 @@ def train(rank, args, model, device, dataloader_kwargs):
         train_loader = DataLoader(glove_dataset, batch_size=args.batch_size, **dataloader_kwargs)
     else:
         train_loader = DataLoader(glove_dataset, batch_size=args.batch_size, shuffle=True, num_workers=4, **dataloader_kwargs)
-    optimizer = optim.Adagrad(model.parameters(), lr=args.eta)
+    optimizer = optim.Adagrad(model.parameters(), lr=args.eta, initial_accumulator_value=1.0)
     for epoch in range(1, args.epochs + 1):
         train_epoch(epoch, args, model, device, train_loader, optimizer)
 
