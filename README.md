@@ -35,6 +35,6 @@ python3 output_vector.py --help
  
 ## Features To-do
 
-[x] GloVe Loss
-[x] Multi-threading
-[ ] Reproduce performance of official implementation by C
+- [x] GloVe Loss
+- [x] Multi-threading
+- [ ] Reproduce performance of official implementation by C
