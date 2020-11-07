@@ -6,7 +6,7 @@
 
 I planed to use the loss function of GloVe in a pytorch project so that I created this one to test the performance of the GloVe loss implemented in pytorch.
 
-It have not reach the performance of [official GloVe model implementation by C](https://nlp.stanford.edu/projects/glove/).
+It has not reached the performance of [official GloVe model implementation by C](https://nlp.stanford.edu/projects/glove/) yet.
 
 So it is still **WIP**.
 
@@ -37,4 +37,4 @@ python3 output_vector.py --help
 
 [x] GloVe Loss
 [x] Multi-threading
-[ ] Reproduce performance of offical implementation by C
+[ ] Reproduce performance of official implementation by C
